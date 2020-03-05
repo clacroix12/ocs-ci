@@ -432,7 +432,7 @@ OPERATOR_CATALOG_SOURCE_NAME = "ocs-catalogsource"
 MARKETPLACE_NAMESPACE = "openshift-marketplace"
 OPERATOR_INTERNAL_SELECTOR = "ocs-operator-internal=true"
 OPERATOR_CS_QUAY_API_QUERY = (
-    'https://quay.io/api/v1/repository/rhceph-dev/ocs-olm-operator/'
+    'https://quay.io/api/v1/repository/rhceph-dev/ocs-registry/'
     'tag/?onlyActiveTags=true&limit={tag_limit}'
 )
 

@@ -226,6 +226,7 @@ class Deployment(object):
         catalog_source_data = templating.load_yaml(
             constants.CATALOG_SOURCE_YAML
         )
+        logger.warning('cs data: %s', catalog_source_data)
         cs_name = constants.OPERATOR_CATALOG_SOURCE_NAME
         # TODO: Once needed we can also set the channel for the subscription
         # from config.DEPLOYMENT.get('ocs_csv_channel')
@@ -239,6 +240,7 @@ class Deployment(object):
             catalog_source_data['spec']['image'] = (
                 f"{image}:{image_tag if image_tag else 'latest'}"
             )
+            logger.warning('Changed cs data to: %s', catalog_source_data)
         catalog_source_manifest = tempfile.NamedTemporaryFile(
             mode='w+', prefix='catalog_source_manifest', delete=False
         )
