@@ -3449,14 +3449,14 @@ def pvc_clone_factory(request):
 def reportportal_customization(request):
     if hasattr(request.node.config, "py_test_service"):
         rp_service = request.node.config.py_test_service
-        if not hasattr(rp_service.RP, "rp_client"):
+        if not hasattr(rp_service, "rp"):
             request.config._metadata[
                 "RP Launch URL:"
             ] = "Problem with RP, launch URL is not available!"
             return
-        launch_id = rp_service.RP.rp_client.launch_id
-        project = rp_service.RP.rp_client.project
-        endpoint = rp_service.RP.rp_client.endpoint
+        launch_id = rp_service.rp.launch_id
+        project = rp_service.rp.project
+        endpoint = rp_service.rp.endpoint
         launch_url = f"{endpoint}/ui/#{project}/launches/all/{launch_id}/{launch_id}"
         config.REPORTING["rp_launch_url"] = launch_url
         config.REPORTING["rp_launch_id"] = launch_id

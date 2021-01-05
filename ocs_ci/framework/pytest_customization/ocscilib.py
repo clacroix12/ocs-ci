@@ -300,7 +300,7 @@ def pytest_configure(config):
             ocs_csv = get_ocs_csv()
             ocs_csv_version = ocs_csv.data["spec"]["version"]
             config.addinivalue_line(
-                "rp_launch_tags", f"ocs_csv_version:{ocs_csv_version}"
+                "rp_launch_attributes", f"ocs_csv_version:{ocs_csv_version}"
             )
         except (ResourceNotFoundError, ChannelNotFound, ResourceInUnexpectedState):
             # might be using exisitng cluster path using GUI installation
@@ -590,7 +590,7 @@ def set_report_portal_config(config):
 
     for tag in rp_tags:
         if tag:
-            config.addinivalue_line("rp_launch_tags", tag.lower())
+            config.addinivalue_line("rp_launch_attributes", tag.lower())
     description = ""
     display_name = ocsci_config.REPORTING.get("display_name")
     if display_name:
