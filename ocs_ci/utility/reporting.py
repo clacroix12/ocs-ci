@@ -64,6 +64,8 @@ def get_rp_launch_attributes():
         rp_attrs["fips"] = True
     if config.ENV_DATA.get("encryption_at_rest"):
         rp_attrs["encryption_at_rest"] = True
+    if config.RUN.get("logs_url"):
+        rp_attrs["logs_url"] = config.RUN.get("logs_url")
 
     return rp_attrs
 
