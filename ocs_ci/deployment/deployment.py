@@ -1108,6 +1108,12 @@ class Deployment(object):
         # Set rook log level
         self.set_rook_log_level()
 
+        # Regression verification for bz
+        # https://bugzilla.redhat.com/show_bug.cgi?id=2249678
+        if config.ENV_DATA.get("is_multus_enabled"):
+            taint_cmd = "oc adm taint nodes --all node-role.kubernetes.io/storage=true:NoSchedule"
+            run_cmd(taint_cmd)
+
         # creating StorageCluster
         if config.DEPLOYMENT.get("kms_deployment"):
             kms = KMS.get_kms_deployment()

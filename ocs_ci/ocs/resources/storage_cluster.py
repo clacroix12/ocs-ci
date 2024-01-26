@@ -710,6 +710,7 @@ def ocs_install_verification(
 
     if config.ENV_DATA.get("is_multus_enabled"):
         verify_multus_network()
+        verify_multus_osd_placement()
 
     # validation in case of openshift-cert-manager installed
     if config.DEPLOYMENT.get("install_cert_manager"):
@@ -1863,6 +1864,15 @@ def verify_multus_network():
         assert selectors["cluster"] == (
             f"{config.ENV_DATA['multus_cluster_net_namespace']}/{config.ENV_DATA['multus_cluster_net_name']}"
         )
+
+
+def verify_multus_osd_placement():
+    """
+    Verify cephcluster does not have osd placement configured
+    """
+    placement_cmd = "oc -n openshift-storage get cephcluster -o json | jq 'spec.placement | exists(osd)'"
+    output = run_cmd(placement_cmd)
+    assert output == "true", "CephCluster has osd placement"
 
 
 def verify_networks_in_ceph_pod(pod_networks, net_name, net_namespace):
