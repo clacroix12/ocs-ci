@@ -9,13 +9,13 @@ import tempfile
 
 import yaml
 
+from ocs_ci.deployment.helpers.lso_helpers import add_disks_lso
 from ocs_ci.deployment.helpers.storage_class import get_storageclass
 from ocs_ci.framework import config
 from ocs_ci.ocs import constants, defaults, node
 from ocs_ci.ocs.exceptions import CommandFailed
 from ocs_ci.ocs.ocp import OCP
 from ocs_ci.utility import templating
-from ocs_ci.utility.labeling import label_and_taint_nodes, label_storage_nodes
 from ocs_ci.utility.retry import retry
 from ocs_ci.utility.utils import run_cmd
 import time
@@ -159,10 +159,12 @@ class FusionDataFoundationDeployment:
         """
         logger.info("Configuring storage.")
         self.patch_catalogsource()
-        label_storage_nodes()
-        label_and_taint_nodes()
-        self.create_odfcluster()
-        odfcluster_status_check()
+        # label_storage_nodes()
+        # label_and_taint_nodes()
+        if self.lso_enabled:
+            add_disks_lso()
+        # self.create_odfcluster()
+        # odfcluster_status_check()
 
     def patch_catalogsource(self):
         """
