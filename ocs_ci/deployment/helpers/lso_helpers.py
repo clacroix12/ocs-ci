@@ -36,13 +36,14 @@ from ocs_ci.ocs.resources.catalog_source import CatalogSource, disable_specific_
 logger = logging.getLogger(__name__)
 
 
-def setup_local_storage(storageclass):
+def setup_local_storage(storageclass, skip_operator=False):
     """
     Setup the necessary resources for enabling local storage.
 
     Args:
         storageclass (string): storageClassName value to be used in
             LocalVolume CR based on LOCAL_VOLUME_YAML
+        skip_operator (bool): Skip creation of Local Storage Operator. Default: False
 
     """
     # Get the worker nodes
@@ -53,62 +54,63 @@ def setup_local_storage(storageclass):
     ocp_version = version.get_semantic_ocp_version_from_config()
     ocs_version = version.get_semantic_ocs_version_from_config()
     ocp_ga_version = get_ocp_ga_version(ocp_version)
-    if not ocp_ga_version:
-        create_optional_operators_catalogsource_non_ga()
-    try:
-        get_lso_channel()
-    except CommandFailed as ex:
-        if "not found" in str(ex):
-            create_optional_operators_catalogsource_non_ga(force=True)
-        else:
-            raise
-
-    logger.info("Retrieving local-storage-operator data from yaml")
-    lso_data = list(
-        templating.load_yaml(constants.LOCAL_STORAGE_OPERATOR, multi_document=True)
-    )
-
-    # ensure namespace is correct
-    lso_namespace = config.ENV_DATA["local_storage_namespace"]
-    for data in lso_data:
-        if data["kind"] == "Namespace":
-            data["metadata"]["name"] = lso_namespace
-        else:
-            data["metadata"]["namespace"] = lso_namespace
-        if data["kind"] == "OperatorGroup":
-            data["spec"]["targetNamespaces"] = [lso_namespace]
-
-    # Update local-storage-operator subscription data with channel
-    for data in lso_data:
-        if data["kind"] == "Subscription":
-            data["spec"]["channel"] = get_lso_channel()
+    if not skip_operator:
         if not ocp_ga_version:
+            create_optional_operators_catalogsource_non_ga()
+        try:
+            get_lso_channel()
+        except CommandFailed as ex:
+            if "not found" in str(ex):
+                create_optional_operators_catalogsource_non_ga(force=True)
+            else:
+                raise
+
+        logger.info("Retrieving local-storage-operator data from yaml")
+        lso_data = list(
+            templating.load_yaml(constants.LOCAL_STORAGE_OPERATOR, multi_document=True)
+        )
+
+        # ensure namespace is correct
+        lso_namespace = config.ENV_DATA["local_storage_namespace"]
+        for data in lso_data:
+            if data["kind"] == "Namespace":
+                data["metadata"]["name"] = lso_namespace
+            else:
+                data["metadata"]["namespace"] = lso_namespace
+            if data["kind"] == "OperatorGroup":
+                data["spec"]["targetNamespaces"] = [lso_namespace]
+
+        # Update local-storage-operator subscription data with channel
+        for data in lso_data:
             if data["kind"] == "Subscription":
-                data["spec"]["source"] = "optional-operators"
+                data["spec"]["channel"] = get_lso_channel()
+            if not ocp_ga_version:
+                if data["kind"] == "Subscription":
+                    data["spec"]["source"] = "optional-operators"
 
-    # Create temp yaml file and create local storage operator
-    logger.info(
-        "Creating temp yaml file with local-storage-operator data:\n %s", lso_data
-    )
-    lso_data_yaml = tempfile.NamedTemporaryFile(
-        mode="w+", prefix="local_storage_operator", delete=False
-    )
-    image_source_policy = ocp.OCP(
-        kind="ImageContentSourcePolicy", namespace=constants.MARKETPLACE_NAMESPACE
-    )
-    if not image_source_policy.is_exist(resource_name=lso_data_yaml.name):
-        templating.dump_data_to_temp_yaml(lso_data, lso_data_yaml.name)
-        with open(lso_data_yaml.name, "r") as f:
-            logger.info(f.read())
-        logger.info("Creating local-storage-operator")
-        run_cmd(f"oc create -f {lso_data_yaml.name}")
+        # Create temp yaml file and create local storage operator
+        logger.info(
+            "Creating temp yaml file with local-storage-operator data:\n %s", lso_data
+        )
+        lso_data_yaml = tempfile.NamedTemporaryFile(
+            mode="w+", prefix="local_storage_operator", delete=False
+        )
+        image_source_policy = ocp.OCP(
+            kind="ImageContentSourcePolicy", namespace=constants.MARKETPLACE_NAMESPACE
+        )
+        if not image_source_policy.is_exist(resource_name=lso_data_yaml.name):
+            templating.dump_data_to_temp_yaml(lso_data, lso_data_yaml.name)
+            with open(lso_data_yaml.name, "r") as f:
+                logger.info(f.read())
+            logger.info("Creating local-storage-operator")
+            run_cmd(f"oc create -f {lso_data_yaml.name}")
 
-    local_storage_operator = ocp.OCP(kind=constants.POD, namespace=lso_namespace)
-    assert local_storage_operator.wait_for_resource(
-        condition=constants.STATUS_RUNNING,
-        selector=constants.LOCAL_STORAGE_OPERATOR_LABEL,
-        timeout=600,
-    ), "Local storage operator did not reach running phase"
+        local_storage_operator = ocp.OCP(kind=constants.POD, namespace=lso_namespace)
+        assert local_storage_operator.wait_for_resource(
+            condition=constants.STATUS_RUNNING,
+            selector=constants.LOCAL_STORAGE_OPERATOR_LABEL,
+            timeout=600,
+        ), "Local storage operator did not reach running phase"
 
     # Add disks for vSphere/RHV platform
     platform = config.ENV_DATA.get("platform").lower()
