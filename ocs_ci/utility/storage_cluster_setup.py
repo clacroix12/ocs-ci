@@ -14,6 +14,7 @@ from ocs_ci.ocs.node import get_node_objs
 from ocs_ci.ocs.ocp import OCP
 from ocs_ci.ocs.resources.storage_cluster import setup_ceph_debug
 from ocs_ci.utility import kms as KMS, pgsql, templating, version
+from ocs_ci.utility.arbiter import get_arbiter_location
 from ocs_ci.utility.networking import add_data_replication_separation_to_cluster_data
 from ocs_ci.utility.utils import get_az_count, run_cmd
 
@@ -114,7 +115,7 @@ class StorageClusterSetup(object):
             cluster_data["spec"]["arbiter"]["enable"] = True
             cluster_data["spec"]["nodeTopologies"][
                 "arbiterLocation"
-            ] = self.deployment.get_arbiter_location()
+            ] = get_arbiter_location()
             cluster_data["spec"]["storageDeviceSets"][0]["replica"] = 4
 
         cluster_data["metadata"]["name"] = config.ENV_DATA["storage_cluster_name"]
