@@ -41,6 +41,9 @@ class FusionDataFoundationDeployment:
             storage_class.get_storageclass() or constants.DEFAULT_STORAGECLASS_LSO
         )
         self.custom_storage_class_path = None
+        self.fdf_skip_storage_setup = config.DEPLOYMENT.get(
+            "fdf_skip_storage_setup", False
+        )
 
     def deploy(self):
         """
@@ -54,7 +57,8 @@ class FusionDataFoundationDeployment:
 
         self.create_fdf_service_cr()
         self.verify_fdf_installation()
-        self.setup_storage()
+        if not self.fdf_skip_storage_setup:
+            self.setup_storage()
 
     def create_image_tag_mirror_set(self):
         """
