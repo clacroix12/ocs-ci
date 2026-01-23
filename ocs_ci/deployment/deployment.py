@@ -82,7 +82,15 @@ from ocs_ci.ocs.monitoring import (
     validate_pvc_created_and_bound_on_monitoring_pods,
     validate_pvc_are_mounted_on_monitoring_pods,
 )
-from ocs_ci.ocs.node import get_worker_nodes, verify_all_nodes_created
+from ocs_ci.ocs.node import (
+    get_worker_nodes,
+    mark_masters_schedulable,
+    verify_all_nodes_created,
+    label_nodes,
+    get_all_nodes,
+    get_node_objs,
+    get_nodes,
+)
 from ocs_ci.ocs.ocp import OCP
 from ocs_ci.ocs.resources import machineconfig
 from ocs_ci.ocs.resources import packagemanifest
@@ -1902,6 +1910,32 @@ class Deployment(object):
             "disconnected_env_skip_image_mirroring"
         ):
             image = prepare_disconnected_ocs_deployment()
+
+        if (
+            config.ENV_DATA.get("odf_provider_mode_deployment", False)
+            and not config.ENV_DATA["skip_ocs_deployment"]
+        ):
+            path = "/spec/routeAdmission"
+            value = '{wildcardPolicy: "WildcardsAllowed"}'
+            params = f"""[{{"op": "add", "path": "{path}", "value": {value}}}]"""
+            patch_cmd = (
+                f"patch {constants.INGRESSCONTROLLER} -n {constants.OPENSHIFT_INGRESS_OPERATOR_NAMESPACE} "
+                + f"default --type json -p '{params}'"
+            )
+            OCP().exec_oc_cmd(command=patch_cmd)
+
+            # Mark master nodes schedulable if mark_masters_schedulable: True
+            if config.ENV_DATA.get("mark_masters_schedulable", True):
+                mark_masters_schedulable()
+                # Allow ODF to be deployed on all nodes
+                logger.info("labeling all nodes as storage nodes")
+                nodes = get_all_nodes()
+                node_objs = get_node_objs(nodes)
+                label_nodes(nodes=node_objs, label=constants.OPERATOR_NODE_LABEL)
+            else:
+                logger.info("labeling worker nodes as storage nodes")
+                worker_node_objs = get_nodes(node_type=constants.WORKER_MACHINE)
+                label_nodes(nodes=worker_node_objs, label=constants.OPERATOR_NODE_LABEL)
 
         if config.DEPLOYMENT["external_mode"]:
             self.deploy_with_external_mode()
