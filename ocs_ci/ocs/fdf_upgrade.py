@@ -233,35 +233,27 @@ class FDFUpgrade(BaseUpgrade):
 
     def update_subscription_channel(self):
         """
-        Update the ODF operator subscription channel based on fdf_upgrade_image_tag.
+        Update the ODF operator subscription channel based on fdf_upgrade_version.
 
-        This method derives the channel from fdf_upgrade_image_tag, waits for it to
+        This method derives the channel from fdf_upgrade_version, waits for it to
         become available, and updates the odf-operator subscription channel.
 
         Raises:
-            ConfigurationError: If fdf_upgrade_image_tag is not configured or cannot be parsed
+            ConfigurationError: If fdf_upgrade_version cannot be parsed
             ChannelNotFound: If the upgrade channel does not become available within timeout
 
         """
-        fdf_upgrade_image_tag = config.DEPLOYMENT.get("fdf_upgrade_image_tag")
-        if not fdf_upgrade_image_tag:
-            raise ConfigurationError(
-                "fdf_upgrade_image_tag is not configured. "
-                "Cannot determine upgrade subscription channel."
-            )
-
-        version_str = fdf_upgrade_image_tag.lstrip("v")
-        version_parts = version_str.split(".")
+        version_parts = self.fdf_upgrade_version.split(".")
         if len(version_parts) < 2:
             raise ConfigurationError(
-                f"Could not parse version from fdf_upgrade_image_tag: {fdf_upgrade_image_tag}. "
-                f"Expected format with at least major.minor version (e.g., 'v4.21', '4.18.8-2')"
+                f"Could not parse version from fdf_upgrade_version: {self.fdf_upgrade_version}. "
+                f"Expected format with at least major.minor version (e.g., '4.21', '4.18.8-2')"
             )
 
         self.channel = f"stable-{version_parts[0]}.{version_parts[1]}"
         logger.info(
             f"Derived upgrade channel '{self.channel}' from "
-            f"fdf_upgrade_image_tag '{fdf_upgrade_image_tag}'"
+            f"fdf_upgrade_version '{self.fdf_upgrade_version}'"
         )
 
         logger.info(f"Waiting for upgrade channel '{self.channel}' to be available")
