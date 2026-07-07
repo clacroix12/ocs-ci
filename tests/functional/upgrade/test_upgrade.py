@@ -241,5 +241,7 @@ def test_fdf_upgrade():
     if fdf_version.startswith("v"):
         fdf_version = fdf_version[1:]
 
-    fdf_upgrade = FDFUpgrade(namespace=namespace, version_before_upgrade=fdf_version)
-    fdf_upgrade.run_upgrade()
+    fdf_upgrade_obj = FDFUpgrade(
+        namespace=namespace, version_before_upgrade=fdf_version
+    )
+    fdf_upgrade_obj.run_upgrade()
