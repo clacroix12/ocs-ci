@@ -331,6 +331,7 @@ def get_packagemanifest_by_catalog_source(package_name, catalog_source):
     Raises:
         CommandFailed: If the oc command fails or yq filtering fails.
         ValueError: If no packagemanifest is found matching the criteria.
+        yaml.YAMLError: If the packagemanifest data cannot be parsed as YAML.
 
     Example:
         >>> pm = get_packagemanifest_by_catalog_source(
