@@ -444,7 +444,7 @@ class FDFUpgrade(BaseUpgrade):
             logger.info("Pending install plans:")
             ip_cmd = (
                 f"oc --kubeconfig {self.kubeconfig} "
-                "get installplan -n {constants.OPENSHIFT_STORAGE_NAMESPACE} "
+                f"get installplan -n {constants.OPENSHIFT_STORAGE_NAMESPACE} "
                 "-o yaml"
             )
             result = exec_cmd(ip_cmd)
