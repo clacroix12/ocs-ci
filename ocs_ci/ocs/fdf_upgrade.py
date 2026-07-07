@@ -155,14 +155,28 @@ class FDFUpgrade(BaseUpgrade):
         Load FDF version-specific configuration file.
 
         Args:
-            upgrade_version (str): FDF version to load config for
+            upgrade_version (str): FDF version to load config for (e.g., "4.18.8-2")
 
         """
+        # Extract major.minor version from upgrade_version for config file lookup
+        # e.g., "4.18.8-2" -> "4.18"
+        version_parts = upgrade_version.split(".")
+        if len(version_parts) < 2:
+            logger.warning(
+                f"Cannot parse major.minor from upgrade_version: {upgrade_version}, "
+                "skipping version config load"
+            )
+            return
+
+        major_minor = f"{version_parts[0]}.{version_parts[1]}"
         version_config_file = os.path.join(
-            constants.FDF_VERSION_CONF_DIR, f"fdf-{upgrade_version}.yaml"
+            constants.FDF_VERSION_CONF_DIR, f"fdf-{major_minor}.yaml"
         )
         if os.path.exists(version_config_file):
-            logger.info(f"Loading config file for FDF version: {upgrade_version}")
+            logger.info(
+                f"Loading config file for FDF version {major_minor} "
+                f"(from upgrade_version {upgrade_version})"
+            )
             load_config_file(version_config_file)
         else:
             logger.info(
