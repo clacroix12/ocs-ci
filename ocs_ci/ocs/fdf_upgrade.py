@@ -324,7 +324,7 @@ class FDFUpgrade(BaseUpgrade):
         """
         logger.test_step("Monitoring FDF upgrade progress")
 
-        expected_version = config.DEPLOYMENT.get("fdf_upgrade_image_tag")
+        expected_version = self.fdf_upgrade_version
 
         if expected_version and expected_version.startswith("v"):
             expected_version = expected_version[1:]
