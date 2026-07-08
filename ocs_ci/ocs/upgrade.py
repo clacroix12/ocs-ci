@@ -52,6 +52,7 @@ class BaseUpgrade(object):
         self.upgrade_in_current_source = config.UPGRADE.get(
             "upgrade_in_current_source", False
         )
+        self._channel = None
         self.start_time = None
         self.end_time = None
         self.duration = None
@@ -70,6 +71,31 @@ class BaseUpgrade(object):
 
         """
         return self._version_before_upgrade
+
+    @property
+    def channel(self):
+        """
+        Get the upgrade channel.
+
+        Returns:
+            str: Upgrade channel
+
+        """
+        if self._channel is None:
+            self._channel = config.DEPLOYMENT.get("ocs_csv_channel")
+        return self._channel
+
+    @channel.setter
+    def channel(self, value):
+        """
+        Set the upgrade channel.
+
+        Args:
+            value (str): Upgrade channel to set
+
+        """
+        self._channel = value
+        config.DEPLOYMENT["ocs_csv_channel"] = value
 
     def get_upgrade_version(self):
         """

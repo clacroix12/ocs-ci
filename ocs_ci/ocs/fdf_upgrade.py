@@ -55,7 +55,6 @@ class FDFUpgrade(BaseUpgrade):
         self.fdf_deployment = FusionDataFoundationDeployment()
         self.kubeconfig = config.RUN.get("kubeconfig")
         self._fdf_upgrade_version = None
-        self._channel = None
 
     @property
     def fdf_upgrade_version(self):
@@ -80,31 +79,6 @@ class FDFUpgrade(BaseUpgrade):
 
         """
         self._fdf_upgrade_version = value
-
-    @property
-    def channel(self):
-        """
-        Get the FDF upgrade channel.
-
-        Returns:
-            str: FDF upgrade channel
-
-        """
-        if self._channel is None:
-            self._channel = config.DEPLOYMENT.get("ocs_csv_channel")
-        return self._channel
-
-    @channel.setter
-    def channel(self, value):
-        """
-        Set the FDF upgrade channel.
-
-        Args:
-            value (str): FDF upgrade channel to set
-
-        """
-        self._channel = value
-        config.DEPLOYMENT["ocs_csv_channel"] = value
 
     def get_upgrade_version(self):
         """
