@@ -25,6 +25,7 @@ from ocs_ci.utility.retry import retry
 from ocs_ci.utility.utils import (
     exec_cmd,
     load_config_file,
+    TimeoutSampler,
     wait_for_machineconfigpool_status,
 )
 
@@ -245,9 +246,10 @@ class FDFUpgrade(BaseUpgrade):
         )
 
         logger.info(f"Waiting for upgrade channel '{self.channel}' to be available")
-        if not self.wait_for_subscription_channel(self.channel, timeout=300):
+        timeout = 300
+        if not self.wait_for_subscription_channel(self.channel, timeout=timeout):
             raise ChannelNotFound(
-                f"Channel '{self.channel}' did not become available within 300 seconds. "
+                f"Channel '{self.channel}' did not become available within {timeout} seconds. "
                 f"Cannot proceed with subscription channel update."
             )
 
@@ -458,16 +460,17 @@ class FDFUpgrade(BaseUpgrade):
             f"in {package_name} packagemanifest from catalog source '{catalog_source}'"
         )
 
-        start_time = time.time()
         last_channels = None
 
-        while time.time() - start_time < timeout:
-            try:
-                package_manifest = get_packagemanifest_by_catalog_source(
-                    package_name=package_name, catalog_source=catalog_source
-                )
-
-                channels = package_manifest.get("status", {}).get("channels", [])
+        try:
+            for sample in TimeoutSampler(
+                timeout=timeout,
+                sleep=10,
+                func=get_packagemanifest_by_catalog_source,
+                package_name=package_name,
+                catalog_source=catalog_source,
+            ):
+                channels = sample.get("status", {}).get("channels", [])
                 channel_names = [ch["name"] for ch in channels]
 
                 if channel_names != last_channels:
@@ -480,11 +483,11 @@ class FDFUpgrade(BaseUpgrade):
                     logger.info(f"Channel '{channel_name}' is now available")
                     return True
 
-            except Exception as e:
-                logger.debug(f"Error checking for channel: {e}")
-
-            time.sleep(10)
-
-        elapsed = time.time() - start_time
-        logger.warning(f"Channel '{channel_name}' did not appear after {elapsed:.0f}s")
-        return False
+        except TimeoutExpiredError:
+            logger.warning(
+                f"Channel '{channel_name}' did not appear within {timeout}s timeout"
+            )
+            return False
+        except Exception as e:
+            logger.warning(f"Error while waiting for channel '{channel_name}': {e}")
+            return False
