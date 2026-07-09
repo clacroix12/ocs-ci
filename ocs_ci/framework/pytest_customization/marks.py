@@ -20,6 +20,9 @@ from ocs_ci.ocs.constants import (
     ORDER_OCS_UPGRADE,
     ORDER_AFTER_OCP_UPGRADE,
     ORDER_AFTER_OCS_UPGRADE,
+    ORDER_BEFORE_FDF_UPGRADE,
+    ORDER_FDF_UPGRADE,
+    ORDER_AFTER_FDF_UPGRADE,
     ORDER_AFTER_UPGRADE,
     CLOUD_PLATFORMS,
     ON_PREM_PLATFORMS,
@@ -120,6 +123,7 @@ tier_marks = [
 order_pre_upgrade = pytest.mark.order(ORDER_BEFORE_UPGRADE)
 order_pre_ocp_upgrade = pytest.mark.order(ORDER_BEFORE_OCP_UPGRADE)
 order_pre_ocs_upgrade = pytest.mark.order(ORDER_BEFORE_OCS_UPGRADE)
+order_pre_fdf_upgrade = pytest.mark.order(ORDER_BEFORE_FDF_UPGRADE)
 order_ocp_upgrade = pytest.mark.order(ORDER_OCP_UPGRADE)
 order_mco_upgrade = pytest.mark.order(ORDER_MCO_UPGRADE)
 order_dr_hub_upgrade = pytest.mark.order(ORDER_DR_HUB_UPGRADE)
@@ -128,9 +132,11 @@ order_dr_hub_upgrade = pytest.mark.order(ORDER_DR_HUB_UPGRADE)
 order_dr_cluster_operator_upgrade = pytest.mark.order(ORDER_DR_HUB_UPGRADE)
 order_acm_upgrade = pytest.mark.order(ORDER_ACM_UPGRADE)
 order_ocs_upgrade = pytest.mark.order(ORDER_OCS_UPGRADE)
+order_fdf_upgrade = pytest.mark.order(ORDER_FDF_UPGRADE)
 order_post_upgrade = pytest.mark.order(ORDER_AFTER_UPGRADE)
 order_post_ocp_upgrade = pytest.mark.order(ORDER_AFTER_OCP_UPGRADE)
 order_post_ocs_upgrade = pytest.mark.order(ORDER_AFTER_OCS_UPGRADE)
+order_post_fdf_upgrade = pytest.mark.order(ORDER_AFTER_FDF_UPGRADE)
 ocp_upgrade = compose(order_ocp_upgrade, pytest.mark.ocp_upgrade)
 # multicluster orchestrator
 mco_upgrade = compose(order_mco_upgrade, pytest.mark.mco_upgrade)
@@ -142,6 +148,10 @@ dr_cluster_operator_upgrade = compose(
 # acm operator
 acm_upgrade = compose(order_acm_upgrade, pytest.mark.acm_upgrade)
 ocs_upgrade = compose(order_ocs_upgrade, pytest.mark.ocs_upgrade)
+
+fdf_upgrade = compose(order_fdf_upgrade, pytest.mark.fdf_upgrade)
+
+
 # pre_*_upgrade markers
 pre_upgrade = compose(order_pre_upgrade, pytest.mark.pre_upgrade)
 pre_ocp_upgrade = compose(
@@ -152,10 +162,15 @@ pre_ocs_upgrade = compose(
     order_pre_ocs_upgrade,
     pytest.mark.pre_ocs_upgrade,
 )
+pre_fdf_upgrade = compose(
+    order_pre_fdf_upgrade,
+    pytest.mark.pre_fdf_upgrade,
+)
 # post_*_upgrade markers
 post_upgrade = compose(order_post_upgrade, pytest.mark.post_upgrade)
 post_ocp_upgrade = compose(order_post_ocp_upgrade, pytest.mark.post_ocp_upgrade)
 post_ocs_upgrade = compose(order_post_ocs_upgrade, pytest.mark.post_ocs_upgrade)
+post_fdf_upgrade = compose(order_post_fdf_upgrade, pytest.mark.post_fdf_upgrade)
 
 upgrade_marks = [
     ocp_upgrade,
@@ -163,12 +178,15 @@ upgrade_marks = [
     dr_hub_upgrade,
     acm_upgrade,
     ocs_upgrade,
+    fdf_upgrade,
     pre_upgrade,
     pre_ocp_upgrade,
     pre_ocs_upgrade,
+    pre_fdf_upgrade,
     post_upgrade,
     post_ocp_upgrade,
     post_ocs_upgrade,
+    post_fdf_upgrade,
 ]
 
 # mark the test class with marker below to ignore leftover check

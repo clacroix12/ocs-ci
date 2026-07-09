@@ -13,10 +13,12 @@ from ocs_ci.framework.testlib import (
     dr_hub_upgrade,
     dr_cluster_operator_upgrade,
     acm_upgrade,
+    fdf_upgrade,
 )
 from ocs_ci.framework import config
 from ocs_ci.ocs.acm_upgrade import ACMUpgrade
 from ocs_ci.ocs.disruptive_operations import worker_node_shutdown, osd_node_reboot
+from ocs_ci.ocs.fdf_upgrade import FDFUpgrade
 from ocs_ci.ocs.ocs_upgrade import run_ocs_upgrade
 from ocs_ci.ocs.dr_upgrade import (
     DRClusterOperatorUpgrade,
@@ -168,3 +170,31 @@ def test_acm_upgrade(zone_rank, role_rank, config_index):
     """
     acm_hub_upgrade_obj = ACMUpgrade()
     acm_hub_upgrade_obj.run_upgrade()
+
+
+@purple_squad
+@fdf_upgrade
+def test_fdf_upgrade():
+    """
+    Test upgrade procedure for IBM Fusion Data Foundation (FDF)
+
+    """
+    from ocs_ci.deployment.fusion_data_foundation import (
+        FusionDataFoundationDeployment,
+    )
+
+    log.test_step("Getting current FDF version from cluster")
+    namespace = config.ENV_DATA["cluster_namespace"]
+
+    # Get current FDF version from the cluster
+    fdf_deployment = FusionDataFoundationDeployment()
+    fdf_version = fdf_deployment.get_installed_version()
+
+    # Strip 'v' prefix if present
+    if fdf_version.startswith("v"):
+        fdf_version = fdf_version[1:]
+
+    fdf_upgrade_obj = FDFUpgrade(
+        namespace=namespace, version_before_upgrade=fdf_version
+    )
+    fdf_upgrade_obj.run_upgrade()
