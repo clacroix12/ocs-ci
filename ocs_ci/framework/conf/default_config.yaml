@@ -129,8 +129,8 @@ DEPLOYMENT:
   # Multicluster engine
   deploy_mce: false
   fusion_channel: v2.0
-
-
+  # FDF
+  fdf_upgrade_registry: "cp.stg.icr.io/cp/df"
 
 # Section for reporting configuration
 REPORTING:
